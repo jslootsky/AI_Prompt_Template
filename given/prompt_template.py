@@ -137,3 +137,117 @@ class PromptTemplate:
         return f"PromptTemplate(template={self.template[:50]}..., params={self.default_params})"
 
 
+class FeynmanTemplate(PromptTemplate):
+    """
+    Extended PromptTemplate implementing the Feynman Learning Technique.
+    
+    The Feynman Technique encourages simple explanations, identifies knowledge
+    gaps, and refines understanding through iterative improvement. Inherits all
+    chainable methods from PromptTemplate while adding Feynman-specific features.
+    """
+
+    def with_feynman_learning(self, target_audience: str = "a child", num_rounds: int = 1) -> 'FeynmanTemplate':
+        """
+        Apply the Feynman Learning Technique to the prompt.
+        
+        Structures the prompt to encourage explaining concepts simply, identifying
+        knowledge gaps, and refining understanding through iterative cycles.
+        
+        Args:
+            target_audience (str): Who you're explaining to.
+                                  Default: "a child"
+                                  Examples: "a high school student", "a beginner"
+            num_rounds (int): Number of refinement cycles (must be >= 1).
+                            Default: 1. Increase for deeper iteration.
+            
+        Returns:
+            FeynmanTemplate: New instance with Feynman structure applied,
+                           allowing method chaining with other techniques.
+        
+        Raises:
+            ValueError: If target_audience is empty, None, or not a string
+            TypeError: If num_rounds is not a positive integer
+            
+        Example:
+            >>> prompt = FeynmanTemplate("Explain Machine Learning")
+            >>> result = prompt.with_feynman_learning("a 10-year-old", num_rounds=2)
+            >>> print(result.full_prompt())
+        """
+        # Input validation
+        if not target_audience or not isinstance(target_audience, str):
+            raise ValueError("target_audience must be a non-empty string")
+        
+        if not isinstance(num_rounds, int) or num_rounds < 1:
+            raise TypeError("num_rounds must be a positive integer (>= 1)")
+        
+        # Build the Feynman-structured prompt
+        feynman_prompt = f"""{self.template}
+
+Apply the Feynman Learning Technique:
+
+Step 1 - Simple Explanation:
+Explain this concept as if teaching {target_audience}. Use simple language, avoid jargon.
+
+Step 2 - Identify Gaps:
+Where did you struggle to explain it simply? What parts were unclear?
+
+Step 3 - Refine Your Explanation:
+Address the gaps you identified. Improve clarity and simplicity."""
+        
+        # Add iteration instruction if multiple rounds requested
+        if num_rounds > 1:
+            feynman_prompt += f"\n\nStep 4 - Iterate and Refine:\nRepeat steps 2-3 for {num_rounds} refinement round(s) to deepen understanding."
+        
+        # Return as FeynmanTemplate to maintain chainability
+        result = FeynmanTemplate(feynman_prompt, **self.default_params)
+        return result
+    
+
+    
+    def with_knowledge_gap_focus(self, specific_gaps: List[str] = None) -> 'FeynmanTemplate':
+        """
+        Focus Feynman Learning on specific knowledge gaps.
+        
+        Directs the model to pay special attention to particular areas where
+        understanding might be incomplete. Works well with with_feynman_learning().
+        
+        Args:
+            specific_gaps (List[str]): List of specific areas to investigate.
+                                      If None, general gaps are identified.
+                                      Examples: ["Why does this happen?", "When is this used?"]
+            
+        Returns:
+            FeynmanTemplate: New instance with gap-focused instructions.
+        
+        Raises:
+            TypeError: If specific_gaps is provided but not a list or None
+            ValueError: If specific_gaps is an empty list
+            
+        Example:
+            >>> gaps = ["Why mechanism X works", "Real-world applications"]
+            >>> prompt = FeynmanTemplate("Explain Photosynthesis")
+            >>> result = prompt.with_knowledge_gap_focus(gaps)
+        """
+        # Input validation
+        if specific_gaps is not None:
+            if not isinstance(specific_gaps, list):
+                raise TypeError("specific_gaps must be a list or None")
+            if isinstance(specific_gaps, list) and len(specific_gaps) == 0:
+                raise ValueError("specific_gaps list cannot be empty")
+        
+        # Create gap-focused instruction text
+        if not specific_gaps:
+            gap_text = "Identify and explain the most important gaps in your understanding."
+        else:
+            gap_text = "Pay special attention to these knowledge gaps:\n" + "\n".join(
+                [f"  - {gap}" for gap in specific_gaps]
+            )
+        
+        new_template = f"""{self.template}
+
+{gap_text}
+
+For each gap, provide a clear, simple explanation that a beginner could understand."""
+        
+        result = FeynmanTemplate(new_template, **self.default_params)
+        return result
