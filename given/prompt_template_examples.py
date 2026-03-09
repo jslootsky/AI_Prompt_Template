@@ -21,6 +21,8 @@ import os
 from google import genai
 
 from prompt_template import PromptTemplate
+from dotenv import load_dotenv
+load_dotenv()
 
 # ============================================================================
 # Configuration
