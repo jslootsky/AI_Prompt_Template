@@ -3,3 +3,6 @@
 
 #jupyter notebook
 .ipynb_checkpoints/
+
+#docs
+~$*.docx
